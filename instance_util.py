@@ -7,7 +7,7 @@ ACCESS_ID, ACCESS_KEY = None, None
 
 if 'IS_ON_HEROKU' in os.environ:
     ACCESS_ID = os.environ['ACCESS_ID']
-    ACCESS_KEY = os.environ['ACESS_KEY']
+    ACCESS_KEY = os.environ['ACCESS_KEY']
 else:
     import credentials
     ACCESS_ID = credentials.ACCESS_ID
