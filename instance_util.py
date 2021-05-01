@@ -12,13 +12,15 @@ if 'IS_ON_HEROKU' in os.environ:
     ACCESS_ID = os.environ['ACCESS_ID']
     ACCESS_KEY = os.environ['ACCESS_KEY']
     temp_file_io = io.StringIO(os.environ['SSH_KEY'])
-    SSH_KEY = paramiko.RSAKey.from_private_key_file(temp_file_io)
+    SSH_KEY = paramiko.RSAKey.from_private_key(temp_file_io)
 
 else:
     import credentials
     ACCESS_ID = credentials.ACCESS_ID
     ACCESS_KEY = credentials.ACCESS_KEY
-    SSH_KEY = paramiko.RSAKey.from_private_key_file(os.path.abspath("minecraftkey.cer"))
+    key = open("minecraftkey.cer", 'r').read()
+    temp_file_io = io.StringIO(key)
+    SSH_KEY = paramiko.RSAKey.from_private_key(temp_file_io)
 
 
 instance_id = 'i-022eb8ac5a823efe7'
