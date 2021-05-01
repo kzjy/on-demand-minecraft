@@ -28,7 +28,6 @@ ec2 = boto3.client('ec2',
     aws_access_key_id=ACCESS_ID,
     aws_secret_access_key=ACCESS_KEY)
 
-key = paramiko.RSAKey.from_private_key_file(filename)
 sshClient = paramiko.SSHClient()
 sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 

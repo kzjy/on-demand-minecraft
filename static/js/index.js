@@ -11,23 +11,35 @@ let serverStatus = STOPPED
 let serverIP = ''
 
 const getInstanceStatus = () => {
-    // return serverStatus
-    if (!start){
-        serverStatus = RUNNING
-    } else {
-        serverStatus = STOPPED
-    }
-    start = !start
-    // $.ajax({
-    //     url: "/instance_state",
-    //     type: "get",
-    //     success: function(response) {
-            
-    //     },
-    //     error: function(xhr) {
-    //         console.log(xhr)
-    //     }
-    // });
+    $.ajax({
+        url: "/instance_state",
+        type: "get",
+        success: function(response) {
+            console.log(response)
+            switch (response[0]) {
+                case RUNNING:
+                    console.log
+                    serverIP = response[1]
+                    setServerState(RUNNING)
+                    
+                    break
+                case STOPPED:
+                    setServerState(STOPPED)
+                    serverIP = ''
+                    break
+                case SHUTTINGDOWN:
+                    setServerState(SHUTTINGDOWN)
+                    serverIP = ''
+                    break
+                default:
+                    setServerState(STOPPED)
+                    serverIP = ''
+            }
+        },
+        error: function(xhr) {
+            console.log(xhr)
+        }
+    });
 }
 
 const setServerState = (state) => {
@@ -39,35 +51,35 @@ const setServerState = (state) => {
 const postStartServer = () => {
     console.log("Start server")
 
-    setServerState(STARTING)
+    // setServerState(STARTING)
     
-    // Replace with actual code to start server
-    let s = sleep(3000)
-    s.then((res) => {
-        console.log("resolved start")
-        setServerState(RUNNING)
-    }, (error) => {
-        console.log("resolved error start")
-        setServerState(ONFIRE)
-    })
+    // // Replace with actual code to start server
+    // let s = sleep(3000)
+    // s.then((res) => {
+    //     console.log("resolved start")
+    //     setServerState(RUNNING)
+    // }, (error) => {
+    //     console.log("resolved error start")
+    //     setServerState(ONFIRE)
+    // })
     // ========================================
     
 }
 
 const postStopServer = () => {
     console.log("Stop server")
-    setServerState(SHUTTINGDOWN)
+    // setServerState(SHUTTINGDOWN)
 
-    // Replace with actual code to start server
-    let s = sleep(3000)
-    s.then((res) => {
-        console.log("resolved stop")
-        setServerState(STOPPED)
-    }, (error) => {
-        console.log("resolved error stop")
-        setServerState(ONFIRE)
-    })
-    // ========================================
+    // // Replace with actual code to start server
+    // let s = sleep(3000)
+    // s.then((res) => {
+    //     console.log("resolved stop")
+    //     setServerState(STOPPED)
+    // }, (error) => {
+    //     console.log("resolved error stop")
+    //     setServerState(ONFIRE)
+    // })
+    // // ========================================
 
 }
 
@@ -185,8 +197,6 @@ const sleep = (time) => {
 
 $('document').ready(function(){
     getInstanceStatus()
-    setserverStatusText()
-    toggleButton()
 
 });
 
