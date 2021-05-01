@@ -1,17 +1,24 @@
 import boto3
 import os
+import paramiko
+import io
 from botocore.exceptions import ClientError
 
 
-ACCESS_ID, ACCESS_KEY = None, None
+
+ACCESS_ID, ACCESS_KEY, SSH_KEY = None, None, None
 
 if 'IS_ON_HEROKU' in os.environ:
     ACCESS_ID = os.environ['ACCESS_ID']
     ACCESS_KEY = os.environ['ACCESS_KEY']
+    temp_file_io = io.StringIO(os.environ['SSH_KEY'])
+    SSH_KEY = paramiko.RSAKey.from_private_key_file(temp_file_io)
+
 else:
     import credentials
     ACCESS_ID = credentials.ACCESS_ID
     ACCESS_KEY = credentials.ACCESS_KEY
+    SSH_KEY = paramiko.RSAKey.from_private_key_file(os.path.abspath("minecraftkey.cer"))
 
 
 instance_id = 'i-022eb8ac5a823efe7'
@@ -20,6 +27,10 @@ ec2 = boto3.client('ec2',
     region_name='us-west-2',
     aws_access_key_id=ACCESS_ID,
     aws_secret_access_key=ACCESS_KEY)
+
+key = paramiko.RSAKey.from_private_key_file(filename)
+sshClient = paramiko.SSHClient()
+sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 
 def create_ec2_client():
@@ -78,3 +89,16 @@ def start_ec2_instance(client):
         return response
     except ClientError as e:
         return e
+
+
+def start_minecraft():
+    try:
+        sshClient.connect(hostname=instanceIp, username="ubuntu", pkey=key)
+        
+        stdin, stdout, stderr = sshClient.exec_command("screen -dmS minecraft bash -c 'sudo java " + Config.MEMORY_ALLOCATION + "-jar server.jar nogui'")
+        print("COMMAND EXECUTED")
+       
+        sshClient.close()
+
+    except:
+        print('Error running server commands')

@@ -21,6 +21,23 @@ def start_instance():
 		return jsonify([])
 	response = start_ec2_instance(ec2)
 	print(response)
+	return jsonify(response)
+
+@app.route("/stop_instance")
+def start_instance():
+	instance_state, ip = describe_ec2_client(ec2)
+	if instance_state != "running":
+		return jsonify([])
+	response = stop_ec2_instance(ec2)
+	print(response)
+	return jsonify(response)
+
+@app.route("/launch_minecraft")
+def launch_minecraft():
+
+
+
+
 
 
 if __name__ == '__main__':

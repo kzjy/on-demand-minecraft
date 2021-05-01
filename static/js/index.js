@@ -1,92 +1,192 @@
 let start = true
+
+// States of server 
+const STOPPED = "stopped"
+const RUNNING = "running"
+const SHUTTINGDOWN = "shutting-down"
+const STARTING = "starting"
+const ONFIRE = "on fire"
+
+let serverStatus = STOPPED
+let serverIP = ''
+
 const getInstanceStatus = () => {
-    $.ajax({
-        url: "/instance_state",
-        type: "get",
-        success: function(response) {
-            if (!start){
-                response[0] = "stopped"
-            } else {
-                response[0] = "running"
-            }
-            start = !start
-            setServerStatusText(response[0], response[1])
-            toggleButton(response[0])
-        },
-        error: function(xhr) {
-            console.log(xhr)
-        }
-    });
+    // return serverStatus
+    if (!start){
+        serverStatus = RUNNING
+    } else {
+        serverStatus = STOPPED
+    }
+    start = !start
+    // $.ajax({
+    //     url: "/instance_state",
+    //     type: "get",
+    //     success: function(response) {
+            
+    //     },
+    //     error: function(xhr) {
+    //         console.log(xhr)
+    //     }
+    // });
+}
+
+const setServerState = (state) => {
+    serverStatus = state
+    toggleButton()
+    setserverStatusText()
 }
 
 const postStartServer = () => {
     console.log("Start server")
-    getInstanceStatus()
+
+    setServerState(STARTING)
+    
+    // Replace with actual code to start server
+    let s = sleep(3000)
+    s.then((res) => {
+        console.log("resolved start")
+        setServerState(RUNNING)
+    }, (error) => {
+        console.log("resolved error start")
+        setServerState(ONFIRE)
+    })
+    // ========================================
+    
 }
 
 const postStopServer = () => {
     console.log("Stop server")
-    getInstanceStatus()
+    setServerState(SHUTTINGDOWN)
+
+    // Replace with actual code to start server
+    let s = sleep(3000)
+    s.then((res) => {
+        console.log("resolved stop")
+        setServerState(STOPPED)
+    }, (error) => {
+        console.log("resolved error stop")
+        setServerState(ONFIRE)
+    })
+    // ========================================
+
 }
 
-const toggleButton = (status) => {
+
+const toggleButton = () => {
     let button = document.getElementsByClassName("control-button")[0]
     button.innerHTML = ''
-    if (status == "running") {
-        button.append(document.createTextNode("Stop Server"))
-        button.classList.remove("btn-danger")
-        button.classList.remove("btn-primary")
-        button.classList.add("btn-secondary")
-        button.onclick = postStopServer
-    } else if (status == "stopped") {
-        button.append(document.createTextNode("Start Server"))
-        button.classList.remove("btn-danger")
-        button.classList.add("btn-primary")
-        button.classList.remove("btn-secondary")
-        button.onclick = postStartServer
-    } else {
-        button.append(document.createTextNode("Error, Message me on discord"))
-        button.classList.add("btn-danger")
-        button.classList.remove("btn-primary")
-        button.classList.remove("btn-secondary")
-        button.onclick = function() {console.log("this does nothing")}
+
+    // Remove color/disabled attributes 
+    const attributes = ["btn-danger", "btn-primary", 'btn-secondary', 'disabled']
+    attributes.map(function (x) {
+        button.classList.remove(x)
+    })
+
+    switch (serverStatus) {
+        case RUNNING:
+            button.append(document.createTextNode("Stop Server"))
+            button.classList.add("btn-secondary")
+            button.disabled = false
+            button.onclick = postStopServer
+            break 
+
+        case STOPPED:
+            button.append(document.createTextNode("Start Server"))
+            button.classList.add("btn-primary")
+            button.disabled = false
+            button.onclick = postStartServer
+            break 
+
+        case STARTING:
+            button.append(document.createTextNode("Starting"))
+            button.classList.add("btn-primary", "disabled")
+            button.disabled = true
+            button.onclick = function () {console.log("This does nothing")}
+            break
+
+        case SHUTTINGDOWN:
+            button.append(document.createTextNode("Stopping"))
+            button.classList.add("btn-secondary", "disabled")
+            button.disabled = true
+            button.onclick = function () {console.log("This does nothing")}
+            break
+
+        case ONFIRE:
+            button.append(document.createTextNode("Server on fire"))
+            button.classList.add("btn-danger", "disabled")
+            button.disabled = true
+            button.onclick = function () {console.log("This does nothing")}
+            break
+        
+        default:
+            button.append(document.createTextNode("Server on fire"))
+            button.classList.add("btn-danger", "disabled")
+            button.disabled = true
+            button.onclick = function () {console.log("This does nothing")}
+            
+
     }
 }
 
-const setServerStatusText = (status, ip) => {
-    let serverStatus = document.getElementsByClassName("server-status")[0]
-    serverStatus.innerHTML = ''
+const setserverStatusText = () => {
+    let serverStatusText = document.getElementsByClassName("server-status")[0]
+    serverStatusText.innerHTML = ''
 
     let text = "Server Status:         "
-    if (status == "running") {
-        text += "Online"
-        let header = document.createElement("h4")
-        header.append(document.createTextNode(text))
-        serverStatus.append(header)
+    let statusHeader = document.createElement("h4")
+    switch (serverStatus) {
+        case RUNNING:
+            text += "Online"
+            statusHeader.append(document.createTextNode(text))
+            serverStatusText.append(statusHeader)
 
-        let server_ip = document.createElement("h4")
-        server_ip.append(document.createTextNode("Server IP: " + ip))
-        serverStatus.append(server_ip)
-    } else if (status == "stopped") {
-        text += "Offline"
-        let header = document.createElement("h4")
-        header.append(document.createTextNode(text))
-        serverStatus.append(header)
-    } else if (status == "shutting-down") {
-        text += "Offline"
-        let header = document.createElement("h4")
-        header.append(document.createTextNode(text))
-        serverStatus.append(header)
-    } else {
-        text += "ON FIRE"
-        let header = document.createElement("h4")
-        header.append(document.createTextNode(text))
-        serverStatus.append(header)
-    } 
+            let server_ip = document.createElement("h4")
+            server_ip.append(document.createTextNode("Server IP: " + serverIP))
+            serverStatusText.append(server_ip)
+            break
+        
+        case STOPPED:
+            text += "Offline"
+            
+            statusHeader.append(document.createTextNode(text))
+            serverStatusText.append(statusHeader)
+            break
+        
+        case STARTING:
+            text += "Starting"
+            statusHeader.append(document.createTextNode(text))
+            serverStatusText.append(statusHeader)
+            break
+
+        case SHUTTINGDOWN:
+            text += "Shutting Down"
+            statusHeader.append(document.createTextNode(text))
+            serverStatusText.append(statusHeader)
+            break
+        
+        case ONFIRE:
+            text += "ON FIRE"
+            statusHeader.append(document.createTextNode(text))
+            serverStatusText.append(statusHeader)
+            break
+        
+        default:
+            text += "ON FIRE"
+            statusHeader.append(document.createTextNode(text))
+            serverStatusText.append(statusHeader)
+
+    }
+
+}
+
+const sleep = (time) => {
+    return new Promise((resolve) => setTimeout(resolve, time));
 }
 
 $('document').ready(function(){
     getInstanceStatus()
+    setserverStatusText()
+    toggleButton()
 
 });
 

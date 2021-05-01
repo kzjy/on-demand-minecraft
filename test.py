@@ -1,3 +1,6 @@
 import os
+import io
 
-print(os.environ['ACCESS_ID'])
+f = io.StringIO(u"a,b,c\n1,2,3")
+# f = open("minecraftkey.cer", "r")
+print(f)
