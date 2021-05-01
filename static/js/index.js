@@ -6,6 +6,8 @@ const getInstanceStatus = () => {
         success: function(response) {
             if (!start){
                 response[0] = "stopped"
+            } else {
+                response[0] = "running"
             }
             start = !start
             setServerStatusText(response[0], response[1])
