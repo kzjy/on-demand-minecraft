@@ -1,0 +1,10 @@
+body,html {
+    height: 100%;
+}
+
+.bg-image {
+    /* position: absolute; */
+    /* background-color: black; */
+    background-image: url('/static/minecraft_bg.jpeg');
+    height: 100vh;
+}

@@ -1,7 +1,18 @@
 import boto3
+import os
 from botocore.exceptions import ClientError
 
-from credentials import ACCESS_ID, ACCESS_KEY
+
+ACCESS_ID, ACCESS_KEY = None, None
+
+if 'IS_ON_HEROKU' in os.environ:
+    ACCESS_ID = os.environ['ACCESS_ID']
+    ACCESS_KEY = os.environ['ACESS_KEY']
+else:
+    import credentials
+    ACCESS_ID = credentials.ACCESS_ID
+    ACCESS_KEY = credentials.ACCESS_KEY
+
 
 instance_id = 'i-022eb8ac5a823efe7'
 
@@ -18,10 +29,23 @@ def create_ec2_client():
         aws_secret_access_key=ACCESS_KEY)
 
 def describe_ec2_client(client):
-    response = ec2_client.describe_instance_status(InstanceIds=[instance_id])
-    if response['InstanceStatuses'][0]['InstanceState']['Name'] == 'running':
-        print('It is running')
-    return response
+    response = client.describe_instances(InstanceIds=[instance_id])
+    reservations = response['Reservations']
+    reservation = reservations[0]
+    instances = reservation['Instances']
+
+    # No instances running
+    if len(instances) == 0:
+        return 'on fire', ''
+
+    # Get first instance
+    instance = instances[0]
+    state = instance['State']
+    current_instance_state = state['Name']
+    if current_instance_state == 'stopped' or current_instance_state == 'shutting-down':
+        return current_instance_state, ''
+    elif current_instance_state == 'running':
+        return current_instance_state, instance['PublicIpAddress']
 
 
 def stop_ec2_instance(client):

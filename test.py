@@ -1,1 +1,3 @@
-print(__version__)
+import os
+
+print(os.environ['ACCESS_ID'])
