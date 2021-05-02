@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3a8e33704b9ab99a1f81131735c01fe0b7ca21781e52ddc453ccb16fefbc07f4"
+            "sha256": "25367e4f302cdaf375eb01bd621108eaa1faff0ac425c6f82e39ccb4e6631285"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,13 @@
         ]
     },
     "default": {
+        "asyncio-dgram": {
+            "hashes": [
+                "sha256:c5464927f3ebc9a32aa6bbb3676fc1d645ae8bc9b4597feac8ab527b6fc33f38",
+                "sha256:d969f2c033542dbddab2fd8c0add51b62c3e01b686a21f84b8d3011cdfd4ce89"
+            ],
+            "version": "==1.2.0"
+        },
         "bcrypt": {
             "hashes": [
                 "sha256:5b93c1726e50a93a033c36e5ca7fdcd29a5c7395af50a6892f5d9e7c6cfbfb29",
@@ -108,6 +115,19 @@
                 "sha256:ee77aa129f481be46f8d92a1a7db57269a2f23052d5f2433b4621bb457081cc9"
             ],
             "version": "==3.4.7"
+        },
+        "dnspython": {
+            "hashes": [
+                "sha256:40f563e1f7a7b80dc5a4e76ad75c23da53d62f1e15e6e517293b04e1f84ead7c",
+                "sha256:861e6e58faa730f9845aaaa9c6c832851fbf89382ac52915a51f89c71accdd31"
+            ],
+            "version": "==1.15.0"
+        },
+        "dnspython3": {
+            "hashes": [
+                "sha256:6eb9504abafb91cb67ed9dc3d3289a3ccc438533b460eccbf77e36c5323100f4"
+            ],
+            "version": "==1.15.0"
         },
         "flask": {
             "hashes": [
@@ -202,6 +222,14 @@
                 "sha256:feb7b34d6325451ef96bc0e36e1a6c0c1c64bc1fbec4b854f4529e51887b1621"
             ],
             "version": "==1.1.1"
+        },
+        "mcstatus": {
+            "hashes": [
+                "sha256:0c17c73e0a6d5773cd20ebde0f42680588dea7ef83a8a8e92cec67f8ffaf3627",
+                "sha256:8220f67d5776d77ff98f40daed984c42decc038481bdeb5150d8bc973ee8f6a8"
+            ],
+            "index": "pypi",
+            "version": "==5.2.0"
         },
         "paramiko": {
             "hashes": [

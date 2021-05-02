@@ -1,6 +1,10 @@
 import os
 import io
+import paramiko 
+import subprocess
+import time
+from instance_util import *
 
-f = io.StringIO(u"a,b,c\n1,2,3")
-# f = open("minecraftkey.cer", "r")
-print(f)
+# start_ec2_instance()
+
+start_minecraft()

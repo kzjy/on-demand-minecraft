@@ -8,3 +8,13 @@ body,html {
     background-image: url('/static/minecraft_bg.jpeg');
     height: 100vh;
 }
+
+.surprise-alert {
+    position: fixed;
+    display: block;
+}
+
+#starting-progress-bar {
+    width: 0%;
+    display: none;
+}

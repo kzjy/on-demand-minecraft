@@ -1,0 +1,3 @@
+# TAKEN FROM https://github.com/trevor-laher/OnDemandMinecraft/blob/master/instancesetup/autoshutdown.sh
+
+*/5 * * * * sh /home/ubuntu/autoshutdown.sh
