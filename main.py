@@ -31,6 +31,9 @@ def start_minecraft_server():
 	print("Starting minecraft")
 	return start_minecraft()
 
+@app.route('/favicon.ico')
+def get_favicon():
+	return ("<link rel='icon' type='image/x-icon' href='{{ url_for('static',filename='favicon_io/favicon.ico') }}''>")
 
 
 if __name__ == '__main__':
