@@ -2,57 +2,38 @@ let start = true
 
 // States of server 
 const STOPPED = "stopped"
+const STARTING = "starting"
+const INSTANCE_UP = "instance-up"
+const LAUNCHING = "launching"
 const RUNNING = "running"
 const SHUTTINGDOWN = "shutting-down"
-const STARTING = "starting"
-const LAUNCHING = "launching"
 const ONFIRE = "on fire"
 
 let serverStatus = STOPPED
+let serverMetadata = {}
 let serverIP = ''
 
-const getInstanceStatus = () => {
-    // setServerState(STOPPED)
-    $.ajax({
-        url: "/instance_state",
-        type: "get",
-        success: function(response) {
-            console.log(response)
-            switch (response[0]) {
-                case RUNNING:
-                    console.log(response)
-                    serverIP = response[1]
-                    setServerState(RUNNING)
-                    break
-                
-                case STARTING:
-                    setServerState(STARTING)
-                    serverIP = response[1]
-                    break
-                
-                case LAUNCHING:
-                    setServerState(LAUNCHING)
-                    serverIP = response[1]
-                    break
 
-                case STOPPED:
-                    setServerState(STOPPED)
-                    serverIP = ''
-                    break
+const getServerStatus = () => {
+    return $.ajax({
+        url: "/get_server_status",
+        type: "get"})
+}
 
-                case SHUTTINGDOWN:
-                    setServerState(SHUTTINGDOWN)
-                    serverIP = ''
-                    break
-
-                default:
-                    setServerState(STOPPED)
-                    serverIP = ''
-            }
-        },
-        error: function(xhr) {
-            console.log(xhr)
+const updateServerStatus = () => {
+    getServerStatus().then((response) => {
+        if ('Ip' in response) {
+            serverIP = response['Ip']
         }
+        if ('Server' in response) {
+            serverMetadata = response['Server']
+        }
+        if ([STOPPED, STARTING, INSTANCE_UP, LAUNCHING, RUNNING, SHUTTINGDOWN, ONFIRE].includes(response['State'])) {
+            // console.log(response)
+            setServerState(response['State'])
+        }
+    }).catch((e) => {
+        console.log(e)
     })
 }
 
@@ -63,53 +44,57 @@ const setServerState = (state) => {
     setServerProgressBarAndText()
 }
 
-const postStartServer = () => {
-    getInstanceStatus()
+const startEC2Server = () => {
+    getServerStatus().then((response) => {
+        if (response['State'] == STOPPED) {
+            setServerState(STARTING)
+            return $.ajax({
+                url: "/start_ec2_instance",
+                type: "post"
+            })
+        }
+    }).then((response) => {
+        console.log("started ec2", response)
+        setServerState(INSTANCE_UP)
+    }).catch((e) => {
+        console.log(e)
+    })
+}
 
-    if (serverStatus == STOPPED) {
-        console.log("Start server")
+const startMinecraftServer = () => {
+    getServerStatus().then((response) => {
+        if (response['State'] == INSTANCE_UP) {
+            setServerState(LAUNCHING)
+            return $.ajax({
+                url: "/start_minecraft_server",
+                type: "post"
+            })
+        }
+    }).then((response) => {
+        console.log("started minecraft", response)
+        setServerState(RUNNING)
+    }).catch((e) => {
+        console.log(e)
+    })
 
-        setServerState(STARTING)
+    // updateServerStatus()
 
-        
-        
-        $.ajax({
-            url: "/start_instance",
-            type: "get"
-        }).then((res) => {
-            if (res[0] == RUNNING) {
-                console.log("Instance started, waiting to launching minecraft")
+    // if (serverStatus == INSTANCE_UP) {
+    //     console.log("Starting minecraft server")
 
-                setServerState(LAUNCHING)
+    //     setServerState(LAUNCHING)
 
-                return $.ajax({
-                    url: "/launch_minecraft",
-                    type: "get"
-                })
-            } else {
-                console.log('????')
-            }
+    //     $.ajax({
+    //         url: "/start_minecraft_server",
+    //         type: "post"
+    //     }).then((res) => {
+    //         console.log("Launching minecraft")
+    //         setServerState(RUNNING)
             
-        }).then((res) => {
-            console.log(res)
-            if (res[0] == "ok") {
-                // Set start up progress bar
-
-                getInstanceStatus()
-                setServerState(RUNNING)
-                progressText.textContent = ""
-
-                console.log("Minecraft launched, enjoy")
-            } else {
-                setServerState(ONFIRE)
-                progressText.textContent = "An error has occured while launching minecraft"
-
-                console.log("Minecraft launch failed its doomed")
-            }
-        }).catch((e) => {
-            console.log(e)
-        })
-    }
+    //     }).catch((e) => {
+    //         console.log(e)
+    //     })
+    // }
     
 }
 
@@ -139,9 +124,15 @@ const setServerProgressBarAndText = () => {
             progressText.textContent = "Progress: Starting AWS EC2 instance"
             break
         
-        case LAUNCHING:
+        case INSTANCE_UP:
             progressBar.style.display = "block"
             progressBar.style.width = "60%"
+            progressText.textContent = ""
+            break
+        
+        case LAUNCHING:
+            progressBar.style.display = "block"
+            progressBar.style.width = "80%"
             progressText.textContent = "Progress: Launching minecraft server"
             break
 
@@ -169,7 +160,7 @@ const toggleButton = () => {
     button.innerHTML = ''
 
     // Remove color/disabled attributes 
-    const attributes = ["btn-danger", "btn-primary", 'btn-secondary', 'disabled']
+    const attributes = ["btn-danger", "btn-primary", 'btn-secondary', 'btn-info', 'disabled']
     attributes.map(function (x) {
         button.classList.remove(x)
     })
@@ -183,22 +174,29 @@ const toggleButton = () => {
             break 
 
         case STOPPED:
-            button.append(document.createTextNode("Start Server"))
+            button.append(document.createTextNode("Start EC2 Instance"))
             button.classList.add("btn-secondary")
             button.disabled = false
-            button.onclick = postStartServer
+            button.onclick = startEC2Server
             break 
 
         case STARTING:
-            button.append(document.createTextNode("Starting"))
-            button.classList.add("btn-primary", "disabled")
+            button.append(document.createTextNode("Starting EC2 Instance"))
+            button.classList.add("btn-secondary", "disabled")
             button.disabled = true
             button.onclick = function () {console.log("This does nothing")}
             break
         
+        case INSTANCE_UP:
+            button.append(document.createTextNode("Start Minecraft Server"))
+            button.classList.add("btn-info")
+            button.disabled = false
+            button.onclick = startMinecraftServer
+            break
+        
         case LAUNCHING:
-            button.append(document.createTextNode("Starting"))
-            button.classList.add("btn-primary", "disabled")
+            button.append(document.createTextNode("Starting Minecraft Server"))
+            button.classList.add("btn-info", "disabled")
             button.disabled = true
             button.onclick = function () {console.log("This does nothing")}
             break
@@ -238,9 +236,33 @@ const setServerStatusText = () => {
             statusHeader.append(document.createTextNode(text))
             serverStatusText.append(statusHeader)
 
-            let server_ip = document.createElement("h4")
-            server_ip.append(document.createTextNode("Server IP: " + serverIP))
-            serverStatusText.append(server_ip)
+            let serverIPText = document.createElement("h4")
+            serverIPText.append(document.createTextNode("Server IP: " + serverIP))
+            serverStatusText.append(serverIPText)
+
+            serverStatusText.append(document.createElement('br'))
+
+            let metadataDiv = document.createElement('div')
+            metadataDiv.classList.add('d-flex', 'flex-row')
+            
+            Object.keys(serverMetadata).map(function(key, index) {
+                if (key != 'Players') {
+                    let value = serverMetadata[key];
+                    let serverMetadataItem = document.createElement("p")
+                    serverMetadataItem.classList.add('server-metadata-item')
+                    serverMetadataItem.append(document.createTextNode(key + ": " + value))
+                    metadataDiv.append(serverMetadataItem)
+                }
+            });
+            
+            serverStatusText.append(metadataDiv)
+
+            let serverMetadataItem = document.createElement("p")
+            serverMetadataItem.classList.add('server-metadata-item')
+            serverMetadataItem.append(document.createTextNode('Players' + ": " + serverMetadata.Players))
+            serverStatusText.append(serverMetadataItem)
+
+            
             break
         
         case STOPPED:
@@ -251,14 +273,25 @@ const setServerStatusText = () => {
             break
         
         case STARTING:
-            text += "Starting"
+            text += "Starting EC2 Instance"
             statusHeader.append(document.createTextNode(text))
             serverStatusText.append(statusHeader)
 
             break
+        
+        case INSTANCE_UP:
+            text += "EC2 Instance Online"
+            statusHeader.append(document.createTextNode(text))
+            serverStatusText.append(statusHeader)
+
+            let instance_ip = document.createElement("h4")
+            instance_ip.append(document.createTextNode("Instance IP: " + serverIP))
+            serverStatusText.append(instance_ip)
+
+            break
 
         case LAUNCHING:
-            text += "Launching"
+            text += "Launching Minecraft Server"
             statusHeader.append(document.createTextNode(text))
             serverStatusText.append(statusHeader)
             break
@@ -285,13 +318,13 @@ const setServerStatusText = () => {
 
 }
 
-const sleep = (time) => {
-    return new Promise((resolve) => setTimeout(resolve, time));
-}
 
 $('document').ready(function(){
-    getInstanceStatus()
-
+    updateServerStatus()
+    setInterval(function(){
+        // console.log("updaing status")
+        updateServerStatus()
+        }, 10000);
 });
 
 

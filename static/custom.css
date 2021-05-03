@@ -18,3 +18,8 @@ body,html {
     width: 0%;
     display: none;
 }
+
+.server-metadata-item {
+    margin-right: 2rem;
+    margin-bottom: 0;
+}

@@ -3,8 +3,8 @@ import io
 import paramiko 
 import subprocess
 import time
+import mcstatus
 from instance_util import *
 
-# start_ec2_instance()
+ec2_instance_status_ok()
 
-start_minecraft()

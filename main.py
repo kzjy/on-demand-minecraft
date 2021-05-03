@@ -7,42 +7,30 @@ app = Flask(__name__)
 
 @app.route("/")
 def home_view():
-	# ec2 = create_ec2_client()
-	instance_state, ip = describe_ec2_client()
 	return render_template("index.html")
 
-@app.route("/instance_state")
-def instance_state():
-	instance_state, ip = describe_ec2_client()
-	if instance_state == STOPPED or instance_state == SHUTTINGDOWN or instance_state == "stopping":
-		return jsonify([instance_state, ip])
-	return jsonify([server.state, ip])
+@app.route('/get_server_status')
+def get_server_status():
+	res = get_status()
+	print(res)
+	return jsonify(res)
 
-@app.route("/start_instance")
+@app.route("/start_ec2_instance", methods = ['POST'])
 def start_instance():
-	instance_state, ip = describe_ec2_client()
-	if instance_state != STOPPED:
+	current_instance_status = get_status()
+	if current_instance_status['State'] != STOPPED:
 		print("Server is already running")
 		return jsonify([])
+
 	response = start_ec2_instance()
 	print(response)
 	return jsonify(response)
 
-# @app.route("/stop_instance")
-# def stop_instance():
-# 	instance_state, ip = describe_ec2_client()
-# 	if instance_state != "running":
-# 		return jsonify([])
-# 	response = stop_ec2_instance(ec2)
-# 	print(response)
-# 	return jsonify(response)
-
-@app.route("/launch_minecraft")
-def launch_minecraft():
+@app.route("/start_minecraft_server", methods = ['POST'])
+def start_minecraft_server():
 	print("Starting minecraft")
-	if server.state != STARTING:
-		return jsonify(['not ok', 401])
 	return start_minecraft()
+
 
 
 if __name__ == '__main__':
