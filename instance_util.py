@@ -128,6 +128,10 @@ def get_status():
     # EC2 Instnace stopped
     if instance_state == STOPPED:
         return {'State': STOPPED}
+    
+    # EC2 Instance pending
+    if instance_state == STARTING:
+        return {'State': STARTING}
 
     # Unknown error ?
     return {'State': ONFIRE}
